@@ -75,12 +75,12 @@ WSGI_APPLICATION = 'sgped_api.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-   'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'epFvM4aRpRsTrlmL',
-        'HOST': 'db.hoiebtxvwbupkxinmtgl.supabase.co',
+        'USER': 'postgres.hoiebtxvwbupkxinmtgl',
+        'PASSWORD': 'epFvM4aRpRsTrlmL', 
+        'HOST': 'aws-1-us-east-1.pooler.supabase.com',
         'PORT': '5432',
     }
 }
@@ -121,3 +121,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# Nuestro usuario personalizado
+AUTH_USER_MODEL = 'usuarios.Estudiante'
