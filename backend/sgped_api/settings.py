@@ -123,3 +123,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 # Nuestro usuario personalizado
 AUTH_USER_MODEL = 'usuarios.Estudiante'
+
+# Configuraciones globales de Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
