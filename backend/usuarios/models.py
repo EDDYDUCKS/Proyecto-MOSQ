@@ -4,20 +4,30 @@ from django.db.models import F
 from django.contrib.auth.models import AbstractUser # <--- ¡El salvavidas!
 from django.conf import settings
 
-# --- MODELO ESTUDIANTE (Con superpoderes de Login) ---
+# --- MODELO ESTUDIANTE (Con superpoderes de Login y Menú de Carreras) ---
 class Estudiante(AbstractUser):
-    # AbstractUser ya trae nombre, apellido, correo, username y contraseña de fábrica.
-    # Solo agregamos los campos nuevos de Bienestar Estudiantil:
+    
+    # NUEVO: El menú estricto de carreras de la ULSA
+    CARRERAS_ULSA = [
+        ('LAF', 'Licenciatura Administrativa con Énfasis en Finanzas'),
+        ('LCM', 'Licenciatura Comercial con Énfasis en Mercadeo'),
+        ('IGI', 'Ingeniería en Gestión Industrial'),
+        ('ICE', 'Ingeniería Cibernética Electrónica'),
+        ('IME', 'Ingeniería Mecánica y Energías Renovables'),
+        ('IMS', 'Ingeniería Mecatrónica y Sistemas de Control'),
+        ('IEM', 'Ingeniería Electromédica'),
+    ]
+
     carnet = models.CharField(max_length=20, null=True, blank=True)
-    carrera = models.CharField(max_length=100, null=True, blank=True)
+    # Le agregamos el choices y bajamos el max_length porque en la BD solo guardaremos las siglas (ej: 'ICE')
+    carrera = models.CharField(max_length=5, choices=CARRERAS_ULSA, null=True, blank=True)
     ano_cursado = models.CharField(max_length=20, null=True, blank=True)
     
-    # Interruptor para estudiantes sancionados
     sancionado = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
-
+    
 # --- MODELO EQUIPO ---
 class Equipo(models.Model):
     nombre = models.CharField(max_length=100)

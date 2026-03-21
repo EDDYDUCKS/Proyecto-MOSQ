@@ -132,3 +132,16 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
 }
+
+
+# --- CONFIGURACIÓN DE CORS (Para el Frontend) ---
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000", # Puerto típico de React
+    "http://localhost:5173", # Puerto típico de Vite (React moderno)
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+# (Opcional) Si quieres que en fase de desarrollo cualquier página pueda entrar, 
+# puedes comentar la lista de arriba y solo poner:
+# CORS_ALLOW_ALL_ORIGINS = True
