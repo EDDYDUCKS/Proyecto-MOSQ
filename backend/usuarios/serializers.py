@@ -1,22 +1,16 @@
 from rest_framework import serializers
-from .models import Estudiante, Equipo, Prestamo
+from .models import Estudiante, Equipo, Prestamo, DetallePrestamo
 
 # --- TRADUCTOR DE ESTUDIANTES ---
 class EstudianteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estudiante
-        # Agregamos los cajones nuevos para que el Frontend los pueda ver y llenar
         fields = ['id', 'first_name', 'last_name', 'username', 'email', 'carnet', 'carrera', 'ano_cursado', 'sancionado']
 
-    # --- EL CADENERO DE CORREOS ---
     def validate_email(self, value):
-        # La lista oficial de la ULSA que me acabas de confirmar
         dominios_permitidos = ['@ulsa.edu.ni', '@est.ulsa.edu.ni', '@ac.ulsa.edu.ni']
-        
-        # Revisamos si el correo que intentan registrar termina en alguno de esos 3
         if not any(value.endswith(dominio) for dominio in dominios_permitidos):
             raise serializers.ValidationError("Acceso denegado. Solo se permiten correos institucionales de la ULSA.")
-        
         return value
 
 # --- TRADUCTOR DE EQUIPOS ---
@@ -25,13 +19,30 @@ class EquipoSerializer(serializers.ModelSerializer):
         model = Equipo
         fields = '__all__'
 
-# --- TRADUCTOR DE PRESTAMOS ---
-class PrestamoSerializer(serializers.ModelSerializer):
-    # Esto es un regalo para Christoffer: le mandamos el detalle completo del estudiante y del equipo,
-    # no solo los números de ID, para que le sea más fácil dibujar la página web.
-    estudiante_detalle = EstudianteSerializer(source='estudiante', read_only=True)
+# --- TRADUCTOR DE LOS DETALLES DEL CARRITO ---
+class DetallePrestamoSerializer(serializers.ModelSerializer):
     equipo_detalle = EquipoSerializer(source='equipo', read_only=True)
+    
+    class Meta:
+        model = DetallePrestamo
+        fields = ['id', 'equipo', 'equipo_detalle', 'cantidad']
+
+# --- TRADUCTOR DEL TICKET PRINCIPAL (PRESTAMO) ---
+class PrestamoSerializer(serializers.ModelSerializer):
+    estudiante_detalle = EstudianteSerializer(source='estudiante', read_only=True)
+    # Aquí le decimos que este ticket contiene muchos "detalles" (el carrito)
+    detalles = DetallePrestamoSerializer(many=True)
 
     class Meta:
         model = Prestamo
-        fields = ['id', 'estudiante', 'estudiante_detalle', 'equipo', 'equipo_detalle', 'entregado_por', 'fecha_prestamo', 'fecha_devolucion', 'estado']
+        fields = ['id', 'estudiante', 'estudiante_detalle', 'entregado_por', 'fecha_prestamo', 'fecha_devolucion', 'estado', 'detalles']
+
+    # MAGIA: Le enseñamos a Django cómo desarmar el paquete JSON de Christoffer y guardarlo en las 2 tablas
+    def create(self, validated_data):
+        detalles_data = validated_data.pop('detalles')
+        prestamo = Prestamo.objects.create(**validated_data)
+        
+        for detalle_data in detalles_data:
+            DetallePrestamo.objects.create(prestamo=prestamo, **detalle_data)
+            
+        return prestamo
