@@ -1,17 +1,19 @@
+from django.db import models
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import AbstractUser
-from django.db import 
 from django.db.models import F
 
-class Estudiante(AbstractUser):
+# --- MODELO ESTUDIANTE ---
+# (Asumiendo que así lo tenías estructurado, si tiene más campos, déjalos)
+class Estudiante(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(unique=True)
-    
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.email
-    
+        return f"{self.first_name} {self.last_name} ({self.username})"
+
+# --- MODELO EQUIPO ---
 class Equipo(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
@@ -21,7 +23,7 @@ class Equipo(models.Model):
     def __str__(self):
         return self.nombre
 
-
+# --- MODELO PRESTAMO ---
 class Prestamo(models.Model):
     ESTADOS_PRESTAMO = [
         ('ACTIVO', 'Activo'),
@@ -39,10 +41,10 @@ class Prestamo(models.Model):
     def __str__(self):
         return f"{self.equipo.nombre} prestado a {self.estudiante.email}"
 
-    # --- 1. LÓGICA AL GUARDAR O ACTUALIZAR ---
+    # --- LÓGICA AL GUARDAR O ACTUALIZAR ---
     def save(self, *args, **kwargs):
         
-        # Bloquear si ya tiene un préstamo activo
+        # 1. Bloquear si el estudiante ya tiene un préstamo activo
         if self.estado == 'ACTIVO':
             prestamos_activos = Prestamo.objects.filter(
                 estudiante=self.estudiante, 
@@ -52,11 +54,11 @@ class Prestamo(models.Model):
             if prestamos_activos.exists():
                 raise ValidationError(f"¡Bloqueado! El estudiante {self.estudiante.email} ya tiene un equipo sin devolver.")
 
-        # Refrescar los datos del equipo directamente desde la base de datos para evitar "datos viejos"
-        if self.equipo_id:
+        # 2. Refrescar los datos del equipo directamente desde la BD
+        if getattr(self, 'equipo_id', None):
             self.equipo.refresh_from_db()
 
-        # Escenario A: Es un préstamo NUEVO y está ACTIVO (Resta 1 exacto en BD)
+        # 3. Escenario A: Es un préstamo NUEVO y está ACTIVO (Resta 1 exacto en BD)
         if not self.pk and self.estado == 'ACTIVO':
             if self.equipo.cantidad_disponible > 0:
                 self.equipo.cantidad_disponible = F('cantidad_disponible') - 1
@@ -64,7 +66,7 @@ class Prestamo(models.Model):
             else:
                 raise ValidationError(f"¡Ya no hay '{self.equipo.nombre}' disponibles en la bodega!")
         
-        # Escenario B: El préstamo ya existía y le están cambiando el estado
+        # 4. Escenario B: El préstamo ya existía y le están cambiando el estado
         elif self.pk:
             viejo_prestamo = Prestamo.objects.get(pk=self.pk)
             
@@ -83,9 +85,12 @@ class Prestamo(models.Model):
 
         super().save(*args, **kwargs)
 
-    # --- 2. LÓGICA AL ELIMINAR EL REGISTRO ---
+    # --- LÓGICA AL ELIMINAR EL REGISTRO ---
     def delete(self, *args, **kwargs):
-        # Si deciden borrar el registro de la base de datos mientras estaba Activo
+        if getattr(self, 'equipo_id', None):
+            self.equipo.refresh_from_db()
+            
+        # Si borran el registro mientras estaba Activo, devolvemos el balón
         if self.estado == 'ACTIVO':
             self.equipo.cantidad_disponible = F('cantidad_disponible') + 1
             self.equipo.save(update_fields=['cantidad_disponible'])
