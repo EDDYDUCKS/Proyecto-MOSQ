@@ -48,3 +48,8 @@ yarn-error.log*
 # Archivos de documentación de configuración
 /GITHUB_FILES_GUIDE.md
 /STRUCTURE_TSX_ONLY.md
+
+venv/
+__pycache__/
+.env
+db.sqlite3
