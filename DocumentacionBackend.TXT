@@ -1,0 +1,67 @@
+======================================================
+DOCUMENTACIÓN DEL BACKEND - SGPED (Bienestar Estudiantil)
+======================================================
+
+¡Hola, Christoffer! 
+Aquí tienes todo lo necesario para conectar el Frontend (React) con el Backend (Django).
+
+--- 1. PASOS PARA ARRANCAR EL SERVIDOR EN TU COMPU ---
+Como estamos en un Monorepo, necesitas correr este backend en tu máquina para poder hacer las peticiones fetch a localhost.
+
+1. Abre tu terminal en la carpeta 'backend'.
+2. Activa el entorno virtual (Crea uno si no lo tienes: python -m venv venv).
+3. Instala las dependencias: 
+   pip install -r requirements.txt
+4. Crea un archivo llamado exactamente ".env" en la raíz de la carpeta backend y pídele a Eddy por privado las contraseñas. Debe verse así:
+   SECRET_KEY=clave_de_eddy
+   DB_USER=usuario_de_supabase_de_eddy
+   DB_PASSWORD=password_de_eddy
+5. Enciende el servidor:
+   python manage.py runserver
+
+Tu API base estará viva en: http://127.0.0.1:8000/api/
+
+
+--- 2. RUTAS DISPONIBLES (ENDPOINTS) ---
+
+A) EQUIPOS (Inventario Deportivo)
+- GET /api/equipos/ : Devuelve la lista de todo el material deportivo y su cantidad disponible.
+
+B) ESTUDIANTES (Usuarios)
+- GET /api/estudiantes/ : Devuelve la lista de estudiantes.
+- POST /api/estudiantes/ : Crea un estudiante nuevo. 
+  * REGLA DE NEGOCIO: El sistema rechazará cualquier correo que no termine en @ulsa.edu.ni, @est.ulsa.edu.ni o @ac.ulsa.edu.ni.
+  * PERFIL: El "carnet", "carrera" y "ano_cursado" pueden ir vacíos al inicio, pero son OBLIGATORIOS para el primer préstamo.
+
+C) PRÉSTAMOS (El Carrito de Compras)
+- POST /api/prestamos/ : Crea una nueva solicitud de préstamo.
+  * REGLA DE NEGOCIO: El JSON que me envíes DEBE tener esta estructura de "carrito" para pedir varios equipos a la vez:
+  
+  {
+    "estudiante": ID_DEL_ESTUDIANTE, 
+    "detalles": [
+      {"equipo": ID_DEL_BALON_DE_FUTBOL, "cantidad": 2}, 
+      {"equipo": ID_DE_LOS_CONOS, "cantidad": 5}
+    ]
+  }
+  
+  * ERRORES A MANEJAR EN FRONTEND: Si el estudiante está "sancionado" o tiene el "carnet/carrera" vacíos, mi API te devolverá un Error 400 (Bad Request). Debes atrapar este error en React y mostrarle un modal al estudiante pidiendo sus datos o avisando de la sanción.
+
+D) REPORTES EXCEL (Solo Administradores)
+- GET /api/reportes/excel/ : Ruta directa para descargar el Excel automático. Pon este link en el botón de descarga del panel de administrador.
+
+
+--- 3. DICCIONARIO DE DATOS ESTRICTOS ---
+
+Para la creación del perfil, el campo "carrera" en la base de datos es estricto. Por favor, usa un menú desplegable (<select>) en React que envíe EXACTAMENTE estas siglas (Values):
+
+'LAF' -> Licenciatura Administrativa con Énfasis en Finanzas
+'LCM' -> Licenciatura Comercial con Énfasis en Mercadeo
+'IGI' -> Ingeniería en Gestión Industrial
+'ICE' -> Ingeniería Cibernética Electrónica
+'IME' -> Ingeniería Mecánica y Energías Renovables
+'IMS' -> Ingeniería Mecatrónica y Sistemas de Control
+'IEM' -> Ingeniería Electromédica
+
+======================================================
+¡Cualquier error 500 que te tire la consola, le avisas a Eddy para revisar los logs del servidor!
