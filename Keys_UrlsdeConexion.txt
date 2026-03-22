@@ -1,0 +1,26 @@
+# ==========================================
+# 1. VARIABLES DE ENTORNO (Archivo .env)
+# -> Copia esto EXACTAMENTE así en el archivo .env tuyo y de Christoffer
+# ==========================================
+SECRET_KEY=django-insecure-#ab&i%*b=dvc!nb_9g(8k4i@c*z02qrnr0(wrb1@kqtzf%70j=
+DB_USER=postgres.hoiebtxvwbupkxinmtgl
+DB_PASSWORD=epFvM4aRpRsTrlmL
+
+# ==========================================
+# 2. DATOS DE CONEXIÓN A LA BASE DE DATOS
+# -> (Esto ya está configurado en settings.py, es solo para su referencia)
+# ==========================================
+DB_HOST=aws-1-us-east-1.pooler.supabase.com
+DB_PORT=5432
+
+# ==========================================
+# 3. URLs DEL PROYECTO (Para conectar Frontend y Backend)
+# ==========================================
+# -> URL Base de tu API (A donde Christoffer enviará los fetch):
+API_URL_BASE=http://127.0.0.1:8000/api/
+
+# -> Direcciones autorizadas (CORS) donde Christoffer puede encender su React/Vite:
+FRONTEND_REACT=http://localhost:3000
+FRONTEND_REACT_IP=http://127.0.0.1:3000
+FRONTEND_VITE=http://localhost:5173
+FRONTEND_VITE_IP=http://127.0.0.1:5173
